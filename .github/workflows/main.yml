@@ -31,7 +31,8 @@ jobs:
           RESULT=$(./resignutility resignIPA -baseURL $baseURL -ipaPath $ipaPath -outputIPA $outputIPA -timeout 200)
         
           if [ $RESULT == 1 ]; then
-            echo $(cat ipa_fake_resigned.ipa)
+            echo "OK"
+            echo $(cat $outputIPA)
           fi
 
           if [ $RESULT == 1 ]; then
