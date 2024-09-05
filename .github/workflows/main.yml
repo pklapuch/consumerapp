@@ -1,0 +1,54 @@
+name: GitHub Actions Demo
+run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
+on: 
+  workflow_dispatch:
+  
+jobs:
+  Consume-Pending-Request:
+    runs-on: macos-latest
+    steps:
+      - run: echo "🎉 Triggered by a ${{ github.event_name }} event."
+
+      - name: "Build and Export IPA"
+        run: |
+          echo "This is a fake IPA (before resigning)" > ipa_fake.txt
+
+      - name: Install JSON Parser (JQ)
+        run: |
+          brew install jq
+
+      - name: Download SDK (Executable)
+        run: |
+          curl -O "https://utilitiy-tools.s3.us-east-2.amazonaws.com/resignutility"
+          chmod 777 resignutility
+
+      - name: Download SDK (Script)
+        run: |
+          curl -O "https://utilitiy-tools.s3.us-east-2.amazonaws.com/process_request.sh"
+          chmod 777 process_request.sh          
+
+      - name: Process next pending request (if any)
+        run: |
+          # On success (1), the SDK outputs: `config.json` and `app.ipa` files in the working directory.
+          RESULT=$(./resignutility getNext -baseURL https://esuiymlk0l.execute-api.us-east-2.amazonaws.com/dev/publishing)
+          
+          if [ $RESULT == 1 ]; then
+            RESULT=$(./process_request.sh)
+          fi
+
+          if [ $RESULT == 1 ]; then
+            json=$(cat config.json)
+            ipaFilename=$(echo "$json" | jq '.ipaFilename' | tr -d '"')
+            requestID=$(echo "$json" | jq '.requestID' | tr -d '"')
+            baseURL=https://esuiymlk0l.execute-api.us-east-2.amazonaws.com/dev/publishing
+            
+            RESULT=$(./resignutility updateIPA -baseURL $baseURL -ipaPath $ipaFilename -requestID $requestID)
+          fi
+
+          if [ $RESULT == 1 ]; then
+            echo "SUCCESS"
+          else
+            echo "FAILURE"
+          fi
+      
+      - run: echo "🍏 This job's status is ${{ job.status }}."
