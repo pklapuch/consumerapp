@@ -31,14 +31,13 @@ jobs:
           RESULT=$(./resignutility resignIPA -baseURL $baseURL -ipaPath $ipaPath -outputIPA $outputIPA -timeout 200)
         
           if [ $RESULT == 1 ]; then
-            echo "OK"
             echo $(cat $outputIPA)
           fi
 
           if [ $RESULT == 1 ]; then
-            echo "SUCCESS"
+            echo "Completed with SUCCESS"
           else
-            echo "FAILURE"
+            echo "Completed with FAILURE"
           fi
       
       - run: echo "🍏 This job's status is ${{ job.status }}."
