@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   
 jobs:
-  Consume-Pending-Request:
+  Build-and-release:
     runs-on: macos-latest
     steps:
       - run: echo "🎉 Triggered by a ${{ github.event_name }} event."
@@ -31,7 +31,7 @@ jobs:
           RESULT=$(./resignutility resignIPA -baseURL $baseURL -ipaPath $ipaPath -outputIPA $outputIPA -timeout 200)
         
           if [ $RESULT == 1 ]; then
-            echo $(cat $outputIPA)
+            echo $(cat ipa_fake_resigned.ipa)
           fi
 
           if [ $RESULT == 1 ]; then
