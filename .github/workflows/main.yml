@@ -13,10 +13,6 @@ jobs:
         run: |
           echo "This is a fake IPA (before resigning)" > ipa_fake.txt
 
-      - name: Install JSON Parser (JQ)
-        run: |
-          brew install jq
-
       - name: Download SDK (Executable)
         run: |
           curl -O "https://utilitiy-tools.s3.us-east-2.amazonaws.com/resignutility"
@@ -27,22 +23,15 @@ jobs:
           curl -O "https://utilitiy-tools.s3.us-east-2.amazonaws.com/process_request.sh"
           chmod 777 process_request.sh          
 
-      - name: Process next pending request (if any)
+      - name: Request resigning from publishing team
         run: |
-          # On success (1), the SDK outputs: `config.json` and `app.ipa` files in the working directory.
-          RESULT=$(./resignutility getNext -baseURL https://esuiymlk0l.execute-api.us-east-2.amazonaws.com/dev/publishing)
-          
+          baseURL=https://esuiymlk0l.execute-api.us-east-2.amazonaws.com/dev/publishing
+          ipaPath=ipa_fake.txt
+          outputIPA=ipa_fake_resigned.ipa
+          RESULT=$(./resignutility resignIPA -baseURL $baseURL -ipaPath $ipaPath -outputIPA $outputIPA -timeout 200)
+        
           if [ $RESULT == 1 ]; then
-            RESULT=$(./process_request.sh)
-          fi
-
-          if [ $RESULT == 1 ]; then
-            json=$(cat config.json)
-            ipaFilename=$(echo "$json" | jq '.ipaFilename' | tr -d '"')
-            requestID=$(echo "$json" | jq '.requestID' | tr -d '"')
-            baseURL=https://esuiymlk0l.execute-api.us-east-2.amazonaws.com/dev/publishing
-            
-            RESULT=$(./resignutility updateIPA -baseURL $baseURL -ipaPath $ipaFilename -requestID $requestID)
+            echo $(cat $outputIPA)
           fi
 
           if [ $RESULT == 1 ]; then
